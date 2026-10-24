@@ -203,7 +203,7 @@ def record(
     first_leaves = {p: _leaves(base / p) for p in written}
     _remove_created(base, created)
 
-    read_and_written = sorted(set(written) & set(found.inside))
+    read_and_written = sorted(set(written) & set(found.inside) & set(before))
     written = [p for p in written if p not in read_and_written]
 
     notes: list[str] = []

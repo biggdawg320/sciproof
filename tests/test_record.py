@@ -158,6 +158,26 @@ def test_a_file_read_and_written_by_the_command_is_not_declared(lab):
     assert "cache.json" not in result.numeric
 
 
+def test_a_file_created_then_read_back_by_the_command_is_still_declared(lab):
+    # results.json did not exist before the run: the command creates it and reads it back to
+    # write a report. It is an output, not state, even though it is also in found.inside.
+    script = (
+        "import json\n"
+        "open('data.json').read()\n"
+        "json.dump({'loss': 0.25, 'acc': 0.9}, open('results.json', 'w'))\n"
+        "r = json.load(open('results.json'))\n"
+        "open('report.txt', 'w').write(f\"loss={r['loss']}\\n\")\n"
+    )
+    result = record(name="e", argv=[sys.executable, "-c", script], base=lab.path)
+    excluded = dict(result.excluded)
+    assert "results.json" not in excluded, (
+        "results.json was created and read back in the same run; it should still be declared "
+        f"as an output, not excluded ({excluded!r})"
+    )
+    assert "results.json" in result.numeric
+    assert "report.txt" in result.exact
+
+
 def test_fast_skips_the_second_run_and_says_so(lab):
     result = lab.go(fast=True)
     assert lab.runs() == 2
